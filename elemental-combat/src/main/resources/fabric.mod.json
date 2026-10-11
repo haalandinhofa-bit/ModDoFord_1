@@ -3,13 +3,14 @@
   "id": "elemental_combat",
   "version": "${version}",
   "name": "Elemental Combat",
-  "description": "Poderes elementais de fogo, gelo e explosão para Minecraft Java 1.20.1.",
+  "description": "Poderes elementais de fogo, gelo e terra para Minecraft Java 1.20.1.",
   "authors": ["Sodiun"],
   "environment": "*",
   "entrypoints": {
     "main": ["dev.sodiun.elementalcombat.ElementalCombatMod"],
     "client": ["dev.sodiun.elementalcombat.ElementalCombatClient"]
   },
+  "mixins": ["elemental_combat.mixins.json"],
   "depends": {
     "fabricloader": ">=0.15.11",
     "minecraft": "~1.20.1",
