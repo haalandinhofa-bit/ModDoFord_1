@@ -3,7 +3,8 @@
   "package": "dev.sodiun.experimentalmenu.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ClientPlayNetworkHandlerMixin"
+    "ClientPlayNetworkHandlerMixin",
+    "LivingEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
