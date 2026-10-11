@@ -23,6 +23,16 @@ public final class ExperimentalFeatures {
     public static boolean aimBotArc = false;
     public static boolean aimAtNearestPlayer = false;
     public static boolean puloBlz = false;
+    public static boolean killAura = false;
+    public static boolean doubleJump = false;
+    public static boolean infiniteLife = false;
+    public static boolean fly = false;
+
+    private static boolean jumpWasDown = false;
+    private static boolean doubleJumpUsed = false;
+    private static boolean flyStateCaptured = false;
+    private static boolean previousAllowFlying = false;
+    private static boolean previousFlying = false;
 
     private static final RenderLayer ESP_THROUGH_WALLS = RenderLayer.of(
             "experimental_menu_esp_through_walls",
@@ -42,27 +52,77 @@ public final class ExperimentalFeatures {
     private ExperimentalFeatures() {}
 
     public static void tick(MinecraftClient client) {
-        if (client.player == null || client.world == null || !aimAtNearestPlayer) return;
-        if (!isCombatItem(client.player.getMainHandStack())) return;
+        if (client.player == null || client.world == null) {
+            jumpWasDown = false;
+            doubleJumpUsed = false;
+            flyStateCaptured = false;
+            return;
+        }
 
-        PlayerEntity target = null;
-        double closestDistanceSquared = 24.0 * 24.0;
+        var player = client.player;
+
+        if (aimAtNearestPlayer && isCombatItem(player.getMainHandStack())) {
+            PlayerEntity target = findNearestPlayer(client, 24.0);
+            if (target != null) {
+                Vec3d delta = target.getEyePos().subtract(player.getEyePos());
+                double horizontal = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
+                float yaw = (float) (Math.toDegrees(Math.atan2(delta.z, delta.x)) - 90.0);
+                float pitch = (float) -Math.toDegrees(Math.atan2(delta.y, horizontal));
+                player.setYaw(yaw);
+                player.setPitch(pitch);
+            }
+        }
+
+        if (killAura && client.interactionManager != null
+                && player.getAttackCooldownProgress(0.0f) >= 1.0f) {
+            PlayerEntity target = findNearestPlayer(client, 3.4);
+            if (target != null && player.canSee(target)) {
+                client.interactionManager.attackEntity(player, target);
+                player.swingHand(net.minecraft.util.Hand.MAIN_HAND);
+            }
+        }
+
+        boolean jumpDown = client.options.jumpKey.isPressed();
+        if (player.isOnGround()) {
+            doubleJumpUsed = false;
+        } else if (doubleJump && jumpDown && !jumpWasDown && !doubleJumpUsed
+                && !player.isFallFlying() && !player.isTouchingWater() && !player.isClimbing()) {
+            Vec3d velocity = player.getVelocity();
+            player.setVelocity(velocity.x, 0.42, velocity.z);
+            player.fallDistance = 0.0f;
+            doubleJumpUsed = true;
+        }
+        jumpWasDown = jumpDown;
+
+        if (fly) {
+            if (!flyStateCaptured) {
+                previousAllowFlying = player.getAbilities().allowFlying;
+                previousFlying = player.getAbilities().flying;
+                flyStateCaptured = true;
+            }
+            player.getAbilities().allowFlying = true;
+            player.getAbilities().flying = true;
+            player.getAbilities().setFlySpeed(0.05f);
+        } else if (flyStateCaptured) {
+            player.getAbilities().allowFlying = previousAllowFlying;
+            player.getAbilities().flying = previousFlying && previousAllowFlying;
+            flyStateCaptured = false;
+            player.sendAbilitiesUpdate();
+        }
+    }
+
+    private static PlayerEntity findNearestPlayer(MinecraftClient client, double range) {
+        PlayerEntity nearest = null;
+        double closestDistanceSquared = range * range;
         for (PlayerEntity candidate : client.world.getPlayers()) {
             if (candidate == client.player || !candidate.isAlive() || candidate.isSpectator()) continue;
             double distanceSquared = client.player.squaredDistanceTo(candidate);
             if (distanceSquared < closestDistanceSquared) {
                 closestDistanceSquared = distanceSquared;
-                target = candidate;
+                nearest = candidate;
             }
         }
-        if (target == null) return;
-
-        Vec3d delta = target.getEyePos().subtract(client.player.getEyePos());
-        double horizontal = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
-        float yaw = (float) (Math.toDegrees(Math.atan2(delta.z, delta.x)) - 90.0);
-        float pitch = (float) -Math.toDegrees(Math.atan2(delta.y, horizontal));
-        client.player.setYaw(yaw);
-        client.player.setPitch(pitch);
+        return nearest;
     }
 
     private static boolean isCombatItem(ItemStack stack) {
