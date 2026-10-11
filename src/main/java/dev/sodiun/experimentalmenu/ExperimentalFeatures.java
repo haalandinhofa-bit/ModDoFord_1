@@ -18,7 +18,7 @@ public final class ExperimentalFeatures {
     public static void tick(MinecraftClient client) {
         if (client.player == null || client.world == null) { wasAirborne = false; return; }
         if (!puloBlz) { wasAirborne = false; return; }
-        boolean airborne = !client.player.isOnGround() && !client.player.isFallFlying() && !client.player.isClimbing() && !client.player.isTouchingWater();
+        boolean airborne = !client.player.isOnGround() && !client.player.isGliding() && !client.player.isClimbing() && !client.player.isTouchingWater();
         if (airborne && !wasAirborne) {
             // Client-side experimental boost; not a server-authoritative potion effect.
             var v = client.player.getVelocity();
