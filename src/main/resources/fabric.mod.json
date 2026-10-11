@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "experimental_menu",
+  "version": "${version}",
+  "name": "Experimental Menu",
+  "description": "Menu experimental com ESP visual, treinamento de arco e salto experimental.",
+  "authors": ["Sodiun"],
+  "environment": "client",
+  "entrypoints": { "client": ["dev.sodiun.experimentalmenu.ExperimentalMenuClient"] },
+  "depends": { "fabricloader": ">=0.16.10", "minecraft": "~1.21.4", "java": ">=21", "fabric-api": "*" }
+}
