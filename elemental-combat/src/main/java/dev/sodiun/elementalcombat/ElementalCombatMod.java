@@ -2,6 +2,7 @@ package dev.sodiun.elementalcombat;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -11,6 +12,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.projectile.SmallFireballEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -51,6 +53,7 @@ public final class ElementalCombatMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(entries -> entries.add(BLASTER_ITEM));
         ServerPlayNetworking.registerGlobalReceiver(FIRE_PACKET,
                 (server, player, handler, buf, responseSender) -> server.execute(() -> castFire(player)));
         ServerPlayNetworking.registerGlobalReceiver(ICE_PACKET,
