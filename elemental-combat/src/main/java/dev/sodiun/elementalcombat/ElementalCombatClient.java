@@ -1,18 +1,13 @@
 package dev.sodiun.elementalcombat;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
 import net.minecraft.util.TypedActionResult;
-import org.lwjgl.glfw.GLFW;
 
 public final class ElementalCombatClient implements ClientModInitializer {
     public enum Power {
@@ -62,7 +57,8 @@ public final class ElementalCombatClient implements ClientModInitializer {
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
             MinecraftClient client = MinecraftClient.getInstance();
-            if (client.player != null && client.player.getMainHandStack().isOf(ElementalCombatMod.BLASTER_ITEM)) {
+            if (client.player != null && (client.player.getMainHandStack().isOf(ElementalCombatMod.BLASTER_ITEM)
+                    || client.player.getOffHandStack().isOf(ElementalCombatMod.BLASTER_ITEM))) {
                 drawContext.drawTextWithShadow(client.textRenderer,
                         Text.literal("Blaster: " + getSelectedPower().displayName),
                         8, 8, getSelectedPower().color);
