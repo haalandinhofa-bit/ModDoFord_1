@@ -3,58 +3,74 @@ package dev.sodiun.experimentalmenu;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderPhase;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.VertexRendering;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.AxeItem;
+import net.minecraft.item.BowItem;
+import net.minecraft.item.CrossbowItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.SwordItem;
+import net.minecraft.item.TridentItem;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
 public final class ExperimentalFeatures {
     public static boolean espBox = false;
     public static boolean aimBotArc = false;
+    public static boolean aimAtNearestPlayer = false;
     public static boolean puloBlz = false;
-    private static boolean wasAirborne = false;
-    private static boolean addedJumpSpeed = false;
+
+    private static final RenderLayer ESP_THROUGH_WALLS = RenderLayer.of(
+            "experimental_menu_esp_through_walls",
+            VertexFormats.LINES,
+            VertexFormat.DrawMode.LINES,
+            1536,
+            false,
+            false,
+            RenderLayer.MultiPhaseParameters.builder()
+                    .program(RenderPhase.LINES_PROGRAM)
+                    .depthTest(RenderPhase.ALWAYS_DEPTH_TEST)
+                    .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
+                    .writeMaskState(RenderPhase.COLOR_MASK)
+                    .build(false)
+    );
 
     private ExperimentalFeatures() {}
 
     public static void tick(MinecraftClient client) {
-        if (client.player == null || client.world == null) {
-            wasAirborne = false;
-            addedJumpSpeed = false;
-            return;
-        }
+        if (client.player == null || client.world == null || !aimAtNearestPlayer) return;
+        if (!isCombatItem(client.player.getMainHandStack())) return;
 
-        if (!puloBlz) {
-            removeJumpSpeed(client);
-            wasAirborne = false;
-            return;
+        PlayerEntity target = null;
+        double closestDistanceSquared = 24.0 * 24.0;
+        for (PlayerEntity candidate : client.world.getPlayers()) {
+            if (candidate == client.player || !candidate.isAlive() || candidate.isSpectator()) continue;
+            double distanceSquared = client.player.squaredDistanceTo(candidate);
+            if (distanceSquared < closestDistanceSquared) {
+                closestDistanceSquared = distanceSquared;
+                target = candidate;
+            }
         }
+        if (target == null) return;
 
-        boolean airborne = !client.player.isOnGround()
-                && !client.player.isGliding()
-                && !client.player.isClimbing()
-                && !client.player.isTouchingWater();
-
-        if (airborne && !wasAirborne && !client.player.hasStatusEffect(StatusEffects.SPEED)) {
-            // Client-side effect for local testing. Multiplayer servers may reject/overwrite it.
-            client.player.addStatusEffect(new StatusEffectInstance(
-                    StatusEffects.SPEED, 20, 3, true, false, false));
-            addedJumpSpeed = true;
-        }
-
-        if (!airborne) {
-            removeJumpSpeed(client);
-        }
-        wasAirborne = airborne;
+        Vec3d delta = target.getEyePos().subtract(client.player.getEyePos());
+        double horizontal = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
+        float yaw = (float) (Math.toDegrees(Math.atan2(delta.z, delta.x)) - 90.0);
+        float pitch = (float) -Math.toDegrees(Math.atan2(delta.y, horizontal));
+        client.player.setYaw(yaw);
+        client.player.setPitch(pitch);
     }
 
-    private static void removeJumpSpeed(MinecraftClient client) {
-        if (addedJumpSpeed && client.player != null) {
-            client.player.removeStatusEffect(StatusEffects.SPEED);
-        }
-        addedJumpSpeed = false;
+    private static boolean isCombatItem(ItemStack stack) {
+        return stack.getItem() instanceof SwordItem
+                || stack.getItem() instanceof AxeItem
+                || stack.getItem() instanceof BowItem
+                || stack.getItem() instanceof CrossbowItem
+                || stack.getItem() instanceof TridentItem;
     }
 
     public static void registerRendering() {
@@ -65,7 +81,7 @@ public final class ExperimentalFeatures {
 
             Vec3d camera = context.camera().getPos();
             var matrices = context.matrixStack();
-            var vertices = context.consumers().getBuffer(RenderLayer.getLines());
+            var vertices = context.consumers().getBuffer(ESP_THROUGH_WALLS);
 
             if (espBox) {
                 for (Entity entity : client.world.getEntities()) {
@@ -76,7 +92,7 @@ public final class ExperimentalFeatures {
                 }
             }
 
-            // AIM BOT ARC is a visual-only bow/aim training guide. It never moves the player's aim.
+            // Aim Bot Arc remains a visual-only trajectory guide.
             if (aimBotArc) {
                 Vec3d point = client.player.getEyePos();
                 Vec3d velocity = client.player.getRotationVec(1.0f).normalize().multiply(1.35);
