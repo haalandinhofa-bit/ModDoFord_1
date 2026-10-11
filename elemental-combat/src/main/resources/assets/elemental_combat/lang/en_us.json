@@ -1,6 +1,7 @@
 {
-  "key.elemental_combat.fire": "Fire Blast",
-  "key.elemental_combat.ice": "Ice Burst",
-  "key.elemental_combat.blast": "Elemental Blast",
+  "item.elemental_combat.blaster": "Blaster",
+  "key.elemental_combat.fire": "Fire Blaster",
+  "key.elemental_combat.ice": "Ice Shard",
+  "key.elemental_combat.blast": "Earthquake Blast",
   "category.elemental_combat": "Elemental Combat"
 }
