@@ -86,7 +86,7 @@ public final class ExperimentalFeatures {
         if (player.isOnGround()) {
             doubleJumpUsed = false;
         } else if (doubleJump && jumpDown && !jumpWasDown && !doubleJumpUsed
-                && !player.isFallFlying() && !player.isTouchingWater() && !player.isClimbing()) {
+                && !player.isTouchingWater() && !player.isClimbing()) {
             Vec3d velocity = player.getVelocity();
             player.setVelocity(velocity.x, 0.42, velocity.z);
             player.fallDistance = 0.0f;
