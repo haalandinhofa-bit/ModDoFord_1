@@ -4,6 +4,7 @@ import java.util.Random;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -63,6 +64,9 @@ public final class CajadoFordEvents {
             }
             if (level.destroyBlock(pos, true, entity)) {
                 attempts++;
+                level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state),
+                        pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+                        18, 0.35, 0.25, 0.35, 0.35);
                 level.sendParticles(ParticleTypes.POOF, pos.getX() + 0.5, pos.getY() + 0.5,
                         pos.getZ() + 0.5, 5, 0.25, 0.25, 0.25, 0.08);
             }
