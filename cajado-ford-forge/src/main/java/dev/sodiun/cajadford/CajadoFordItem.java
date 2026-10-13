@@ -37,9 +37,11 @@ public class CajadoFordItem extends Item {
         Vec3 eye = player.getEyePosition();
         Vec3 end = eye.add(player.getLookAngle().scale(RANGE));
         AABB searchBox = player.getBoundingBox().expandTowards(player.getLookAngle().scale(RANGE)).inflate(1.5D);
-        Entity hit = ProjectileUtil.getEntityHitResult(player, eye, end, searchBox,
+        net.minecraft.world.phys.EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
+                player, eye, end, searchBox,
                 entity -> entity instanceof LivingEntity && entity != player && entity.isPickable(),
-                RANGE * RANGE).map(net.minecraft.world.phys.EntityHitResult::getEntity).orElse(null);
+                RANGE * RANGE);
+        Entity hit = entityHit == null ? null : entityHit.getEntity();
 
         ServerLevel server = (ServerLevel) level;
         level.playSound(null, player.blockPosition(), SoundEvents.BEACON_POWER_SELECT,
