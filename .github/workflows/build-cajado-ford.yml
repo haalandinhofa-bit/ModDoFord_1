@@ -1,0 +1,31 @@
+name: Build Cajado Ford (Forge 1.21.4)
+on:
+  push:
+    branches: [ main, cajado-ford-forge-1.21.4 ]
+    paths:
+      - 'cajado-ford-forge/**'
+      - '.github/workflows/build-cajado-ford.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cajado-ford-forge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Build Forge mod
+        run: gradle build --no-daemon
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: cajado-ford-forge-1.21.4
+          path: cajado-ford-forge/build/libs/*.jar
+          if-no-files-found: error
