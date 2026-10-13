@@ -1,0 +1,23 @@
+modLoader="javafml"
+loaderVersion="[54,)"
+license="MIT"
+
+[[mods]]
+modId="cajado_ford"
+version="1.0.0"
+displayName="Cajado Ford"
+description='''Cajado mágico que dispara um feixe e lança criaturas para o alto. O pouso provoca um pequeno impacto no terreno.'''
+
+[[dependencies.cajado_ford]]
+modId="forge"
+mandatory=true
+versionRange="[54.1.0,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.cajado_ford]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.21.4,1.21.5)"
+ordering="NONE"
+side="BOTH"
